@@ -10,42 +10,54 @@
     {
       "title": "hello.spend",
       "datum": {
-        "title": "datum",
+        "title": "dtm",
         "schema": {
-          "$ref": "#/definitions/aikenplayground~1types~1Datum"
+          "$ref": "#/definitions/hello~1VestingDatum"
         }
       },
       "redeemer": {
-        "title": "_redeemer",
+        "title": "rdm",
         "schema": {
-          "$ref": "#/definitions/Data"
+          "$ref": "#/definitions/Void"
         }
       },
-    "compiledCode": "58a6010000323232323232323232322223253330093232323232324a06eb8c048004c02d4ccc034cdc3a4000601800220022c60200026020004601c002600e0042930b1900219299980499b87480000044c8c94ccc038c04000852616375c601c002600e0082c600e0066600200290001111199980399b8700100300b233330050053370000890011806800801001118029baa001230033754002ae6955ceaab9e5573eae855d101",
-      "hash": "877110c408e31add4853be26091df4f4b0eb5305d090717e2cb0c6f4"
+      "compiledCode": "590155010000323232323232323232322223232533300a3232533300c3370e9001000899299980699991911198019bac3300d300f00148040008c0040048894ccc04c00852809919299980919b8f00200314a2266600a00a002006602c0066eb8c050008dd71980498058022400066012601600c9000099911919299980899b87480080044c8c8cdc48030009bad3016001300f00214a0601e00266016601a66016601a0029000240006eb4cc024c02c011200233009300b33009300b00648001200e14a060140042940c028004cc018c02000d2002149858c8014c94ccc028cdc3a4000002264646464a66602260260042930b1bad30110013011002375c601e002601000a2c6010008a66601066e1d2000300937540042930b19800800a40004444666600e66e1c00400c02c8cccc014014cdc000224004601a0020040044600a6ea80048c00cdd5000ab9a5573aaae7955cfaba157441",
+      "hash": "a8a947ae6fe7dcf36fb4571692275507b039790c4b92758d207d2a82"
     }
   ],
   "definitions": {
     "ByteArray": {
       "dataType": "bytes"
     },
-    "Data": {
-      "title": "Data",
-      "description": "Any Plutus data."
+    "Int": {
+      "dataType": "integer"
     },
-    "aikenplayground/types/Datum": {
-      "title": "Datum",
-      "description": "Custom type",
+    "Void": {
+      "title": "Unit",
+      "description": "The nullary constructor.",
       "anyOf": [
         {
-          "title": "Datum",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": []
+        }
+      ]
+    },
+    "hello/VestingDatum": {
+      "title": "VestingDatum",
+      "anyOf": [
+        {
+          "title": "VestingDatum",
           "dataType": "constructor",
           "index": 0,
           "fields": [
             {
-              "title": "message",
-              "description": "A utf8 encoded message",
+              "title": "beneficiary",
               "$ref": "#/definitions/ByteArray"
+            },
+            {
+              "title": "deadline",
+              "$ref": "#/definitions/Int"
             }
           ]
         }
