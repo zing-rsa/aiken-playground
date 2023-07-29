@@ -1,0 +1,55 @@
+{
+  "preamble": {
+    "title": "zing-rsa/aikenplayground",
+    "description": "Aiken contracts for project 'zing-rsa/aikenplayground'",
+    "version": "0.0.0",
+    "plutusVersion": "v2",
+    "license": "Apache-2.0"
+  },
+  "validators": [
+    {
+      "title": "hello.spend",
+      "datum": {
+        "title": "datum",
+        "schema": {
+          "$ref": "#/definitions/aikenplayground~1types~1Datum"
+        }
+      },
+      "redeemer": {
+        "title": "_redeemer",
+        "schema": {
+          "$ref": "#/definitions/Data"
+        }
+      },
+    "compiledCode": "58a6010000323232323232323232322223253330093232323232324a06eb8c048004c02d4ccc034cdc3a4000601800220022c60200026020004601c002600e0042930b1900219299980499b87480000044c8c94ccc038c04000852616375c601c002600e0082c600e0066600200290001111199980399b8700100300b233330050053370000890011806800801001118029baa001230033754002ae6955ceaab9e5573eae855d101",
+      "hash": "877110c408e31add4853be26091df4f4b0eb5305d090717e2cb0c6f4"
+    }
+  ],
+  "definitions": {
+    "ByteArray": {
+      "dataType": "bytes"
+    },
+    "Data": {
+      "title": "Data",
+      "description": "Any Plutus data."
+    },
+    "aikenplayground/types/Datum": {
+      "title": "Datum",
+      "description": "Custom type",
+      "anyOf": [
+        {
+          "title": "Datum",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "title": "message",
+              "description": "A utf8 encoded message",
+              "$ref": "#/definitions/ByteArray"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

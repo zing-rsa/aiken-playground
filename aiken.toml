@@ -1,0 +1,14 @@
+name = "zing-rsa/aikenplayground"
+version = "0.0.0"
+license = "Apache-2.0"
+description = "Aiken contracts for project 'zing-rsa/aikenplayground'"
+
+[repository]
+user = "zing-rsa"
+project = "aikenplayground"
+platform = "github"
+
+[[dependencies]]
+name = "aiken-lang/stdlib"
+version = "1.3.0"
+source = "github"
