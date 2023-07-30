@@ -1,11 +1,10 @@
 use aiken/hash.{Blake2b_224, Hash}
 use aiken/interval.{Finite}
-use aiken/list.{and, or}
 use aiken/transaction.{
-  OutputReference, ScriptContext, Spend, Transaction, ValidityRange,
+  ScriptContext, Spend, Transaction, ValidityRange,
 } as tx
 use aiken/transaction/credential.{VerificationKey}
-use aikenplayground/types
+use aiken/list
 
 type POSIXTime =
   Int
@@ -19,7 +18,7 @@ type VestingDatum {
 }
 
 validator {
-  fn spend(dtm: VestingDatum, rdm: Void, ctx: ScriptContext) {
+  fn spend(dtm: VestingDatum, _rdm: Void, ctx: ScriptContext) {
     when ctx.purpose is {
       Spend(_) ->
         signedByBeneficiary(dtm.beneficiary, ctx.transaction) && deadlinePassed(dtm.deadline, ctx.transaction.validity_range)
