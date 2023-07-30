@@ -8,11 +8,11 @@
   },
   "validators": [
     {
-      "title": "hello.spend",
+      "title": "vesting.spend",
       "datum": {
         "title": "dtm",
         "schema": {
-          "$ref": "#/definitions/hello~1VestingDatum"
+          "$ref": "#/definitions/vesting~1VestingDatum"
         }
       },
       "redeemer": {
@@ -43,7 +43,7 @@
         }
       ]
     },
-    "hello/VestingDatum": {
+    "vesting/VestingDatum": {
       "title": "VestingDatum",
       "anyOf": [
         {
