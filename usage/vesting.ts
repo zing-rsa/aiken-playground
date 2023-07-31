@@ -10,7 +10,7 @@ const lucid = await Lucid.new(
     "Preprod"
 )
 
-const vestingContract = plutus.validators.find(v => v.title == "hello.spend")?.compiledCode;
+const vestingContract = plutus.validators.find(v => v.title == "vesting.spend")?.compiledCode;
 
 if (!vestingContract) throw new Error("Couldn't find vesting contract");
 
@@ -82,8 +82,8 @@ async function run() {
     console.log("locked: ", lockHash)
     
     // wait 3 min for tx to finalize
-    await new Promise((resolve) => setTimeout(resolve, 180 * 1000));
     console.log("waiting 3 min for transaction to propegate...")
+    await new Promise((resolve) => setTimeout(resolve, 180 * 1000));
 
     const consumeHash = await claimFunds(dtm, keys.seed);
     console.log("claimed: ", consumeHash)
