@@ -37,7 +37,7 @@ fn isSeller(signatories: List<PubKeyHash>, seller: PubKeyHash) {
 fn paysSeller(outputs: List<Output>, dtm: Datum) {
     list.any(outputs, fn (o) {
         o.address == from_verification_key(dtm.seller) &&
-        o.value == from_lovelace(1000000 * dtm.price)
+        o.value == from_lovelace(1_000_000 * dtm.price)
     })
 } 
 // required to prevent a double spend vulnerability if the same seller lists 2 tokens for the same price
@@ -47,6 +47,202 @@ fn spendsOne(inputs: List<Input>) {
         _   -> False
     }
 }
+
+//-------------------------------------------------------------------------------------------------
+// Contract Tests
+//-------------------------------------------------------------------------------------------------
+
+fn simulate(
+    signatories: List<PubKeyHash>,
+    outputs: List<Output>,
+    inputs: List<Input>,
+    dtm: Datum
+    ) -> Bool {
+
+        isSeller(signatories, dtm.seller) || (
+            paysSeller(outputs, dtm) && 
+            spendsOne(inputs)
+        )
+}
+
+// valid test
+test case1 () {
+
+    let dtm = Datum { 
+        price: 100,
+        seller: "asdf"   
+    }
+    
+    let inputs = [
+          Input { 
+            output_reference: OutputReference {
+                transaction_id: TransactionId { hash: "sdff" } ,
+                output_index: 0
+            },
+            output: Output {
+                address: from_verification_key("fdas"),
+                value: from_lovelace(1_000_000),
+                datum: InlineDatum(dtm),
+                reference_script: None
+            }
+        }
+    ]
+
+    let outputs = [
+        Output {
+            address: from_verification_key("asdf"),
+            value: from_lovelace(100_000_000),
+            datum: NoDatum,
+            reference_script: None
+        },
+        Output {
+            address: from_verification_key("ffff"),
+            value: from_lovelace(1_000_000), //token
+            datum: NoDatum,
+            reference_script: None
+        }
+    ] 
+
+    if simulate([], outputs, inputs, dtm) {
+        True
+    } else {
+        error
+    }
+}
+
+// underpay the seller
+!test case2 () {
+
+    let dtm = Datum { 
+        price: 100,
+        seller: "asdf"   
+    }
+    
+    let inputs = [
+          Input { 
+            output_reference: OutputReference {
+                transaction_id: TransactionId { hash: "sdff" } ,
+                output_index: 0
+            },
+            output: Output {
+                address: from_verification_key("fdas"),
+                value: from_lovelace(1_000_000),
+                datum: InlineDatum(dtm),
+                reference_script: None
+            }
+        }
+    ]
+
+    let outputs = [
+        Output {
+            address: from_verification_key("asdf"),
+            value: from_lovelace(10_000_000),
+            datum: NoDatum,
+            reference_script: None
+        }
+    ] 
+
+    if simulate([], outputs, inputs, dtm) {
+        True
+    } else {
+        error
+    }
+}
+
+// don't pay the seller
+!test case3 () {
+
+    let dtm = Datum { 
+        price: 100,
+        seller: "asdf"   
+    }
+    
+    let inputs = [
+          Input { 
+            output_reference: OutputReference {
+                transaction_id: TransactionId { hash: "sdff" } ,
+                output_index: 0
+            },
+            output: Output {
+                address: from_verification_key("fdas"),
+                value: from_lovelace(1_000_000),
+                datum: InlineDatum(dtm),
+                reference_script: None
+            }
+        }
+    ]
+
+    let outputs = [
+        Output {
+            address: from_verification_key("asff"),
+            value: from_lovelace(100_000_000),
+            datum: NoDatum,
+            reference_script: None
+        }
+    ] 
+
+    if simulate([], outputs, inputs, dtm) {
+        True
+    } else {
+        error
+    }
+}
+
+// Pay the seller, but claim 2 of his tokens
+!test case4 () {
+
+    let dtm = Datum { 
+        price: 100,
+        seller: "asdf"   
+    }
+    
+    let inputs = [
+          Input { 
+            output_reference: OutputReference {
+                transaction_id: TransactionId { hash: "sdff" } ,
+                output_index: 0
+            },
+            output: Output {
+                address: from_verification_key("fdas"),
+                value: from_lovelace(1_000_000),
+                datum: InlineDatum(dtm),
+                reference_script: None
+            }
+        },
+        Input { 
+            output_reference: OutputReference {
+                transaction_id: TransactionId { hash: "sdff" } ,
+                output_index: 0
+            },
+            output: Output {
+                address: from_verification_key("fdas"),
+                value: from_lovelace(1_000_000),
+                datum: InlineDatum(dtm),
+                reference_script: None
+            }
+        }
+    ]
+
+    let outputs = [
+        Output {
+            address: from_verification_key("asdf"),
+            value: from_lovelace(100_000_000),
+            datum: NoDatum,
+            reference_script: None
+        }
+    ] 
+
+    if simulate([], outputs, inputs, dtm) {
+        True
+    } else {
+        error
+    }
+}
+
+//-------------------------------------------------------------------------------------------------
+// Function Tests
+//-------------------------------------------------------------------------------------------------
+
 
 test spend1() {
     
@@ -58,12 +254,13 @@ test spend1() {
             },
             output: Output {
                 address: from_verification_key("asdf"),
-                value: from_lovelace(1000000),
+                value: from_lovelace(1_000_000),
                 datum: NoDatum,
                 reference_script: None
             }
         }
     ]
+
     spendsOne(inputs)
 }
 
@@ -76,7 +273,7 @@ test spend1() {
             },
             output: Output {
                 address: from_verification_key("1234"),
-                value: from_lovelace(1000000),
+                value: from_lovelace(1_000_000),
                 datum: NoDatum,
                 reference_script: None
             }
@@ -88,14 +285,18 @@ test spend1() {
             },
             output: Output {
                 address: from_verification_key("1234"),
-                value: from_lovelace(1000000),
+                value: from_lovelace(1_000_000),
                 datum: NoDatum,
                 reference_script: None
             }
         }
     ]
 
-    spendsOne(inputs)
+    if spendsOne(inputs) {
+        True
+    } else {
+        error
+    }
 }
 
 test paySeller() {
@@ -130,7 +331,12 @@ test paySeller() {
             reference_script: None
         }
     ] 
-    paysSeller(outputs, dtm)
+
+    if paysSeller(outputs, dtm) {
+        True
+    } else {
+        error
+    }
 }
 
 !test dontPaySeller() {
@@ -139,7 +345,11 @@ test paySeller() {
         price: 100
     }
 
-    paysSeller([], dtm)
+    if paysSeller([], dtm) {
+        True
+    } else {
+        error
+    }
 }
 
 !test payOtherSeller() {
@@ -157,7 +367,11 @@ test paySeller() {
         }
     ] 
  
-    paysSeller(outputs, dtm)
+    if paysSeller(outputs, dtm) {
+        True
+    } else {
+        error
+    }
 }
 
 test reclaim() {
@@ -183,5 +397,10 @@ test reclaim() {
         "fdsa"
     ] 
  
-    isSeller(signatories, dtm.seller)
+    if isSeller(signatories, dtm.seller) {
+        True
+    } else {
+        error
+    }
+
 }
