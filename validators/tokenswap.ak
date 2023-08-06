@@ -1,4 +1,4 @@
-use aiken/transaction/credential.{VerificationKey, from_verification_key}
+use aiken/transaction/credential.{VerificationKey, from_verification_key, Address }
 use aiken/transaction/value.{from_lovelace}
 use aiken/hash.{Blake2b_224, Hash}
 use aiken/transaction.{
@@ -9,7 +9,9 @@ use aiken/transaction.{
     NoDatum,
     Redeemer,
     TransactionId,
-    InlineDatum
+    InlineDatum,
+    Spend,
+    find_input
 }
 use aiken/list
  
@@ -23,9 +25,12 @@ type Datum {
 
 validator() {
     fn spend(dtm: Datum, _rdm: Redeemer, ctx: ScriptContext) {
+        expect Spend(outRef) = ctx.purpose
+        expect Some(ownInput) = find_input(ctx.transaction.inputs, outRef)
+        
         isSeller(ctx.transaction.extra_signatories, dtm.seller) || (
             paysSeller(ctx.transaction.outputs, dtm) && 
-            spendsOne(ctx.transaction.inputs)
+            spendsOne(ctx.transaction.inputs, ownInput.output.address)
        ) 
     }
 }
@@ -40,12 +45,10 @@ fn paysSeller(outputs: List<Output>, dtm: Datum) {
         o.value == from_lovelace(1_000_000 * dtm.price)
     })
 } 
+
 // required to prevent a double spend vulnerability if the same seller lists 2 tokens for the same price
-fn spendsOne(inputs: List<Input>) {
-    when inputs is {
-        [_] -> True
-        _   -> False
-    }
+fn spendsOne(inputs: List<Input>, address: Address ) {
+    list.count(inputs, fn (i) { i.output.address == address }) == 1 
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -61,7 +64,7 @@ fn simulate(
 
         isSeller(signatories, dtm.seller) || (
             paysSeller(outputs, dtm) && 
-            spendsOne(inputs)
+            spendsOne(inputs, from_verification_key("aaaa")) // script address for testing will be aaaa
         )
 }
 
@@ -80,7 +83,7 @@ test case1 () {
                 output_index: 0
             },
             output: Output {
-                address: from_verification_key("fdas"),
+                address: from_verification_key("aaaa"),
                 value: from_lovelace(1_000_000),
                 datum: InlineDatum(dtm),
                 reference_script: None
@@ -125,7 +128,7 @@ test case1 () {
                 output_index: 0
             },
             output: Output {
-                address: from_verification_key("fdas"),
+                address: from_verification_key("aaaa"),
                 value: from_lovelace(1_000_000),
                 datum: InlineDatum(dtm),
                 reference_script: None
@@ -164,7 +167,7 @@ test case1 () {
                 output_index: 0
             },
             output: Output {
-                address: from_verification_key("fdas"),
+                address: from_verification_key("aaaa"),
                 value: from_lovelace(1_000_000),
                 datum: InlineDatum(dtm),
                 reference_script: None
@@ -203,7 +206,7 @@ test case1 () {
                 output_index: 0
             },
             output: Output {
-                address: from_verification_key("fdas"),
+                address: from_verification_key("aaaa"),
                 value: from_lovelace(1_000_000),
                 datum: InlineDatum(dtm),
                 reference_script: None
@@ -215,7 +218,7 @@ test case1 () {
                 output_index: 0
             },
             output: Output {
-                address: from_verification_key("fdas"),
+                address: from_verification_key("aaaa"),
                 value: from_lovelace(1_000_000),
                 datum: InlineDatum(dtm),
                 reference_script: None
@@ -253,7 +256,7 @@ test spend1() {
                 output_index: 0
             },
             output: Output {
-                address: from_verification_key("asdf"),
+                address: from_verification_key("aaaa"),
                 value: from_lovelace(1_000_000),
                 datum: NoDatum,
                 reference_script: None
@@ -261,7 +264,7 @@ test spend1() {
         }
     ]
 
-    spendsOne(inputs)
+    spendsOne(inputs, from_verification_key("aaaa"))
 }
 
 !test spend2() {
@@ -292,7 +295,7 @@ test spend1() {
         }
     ]
 
-    if spendsOne(inputs) {
+    if spendsOne(inputs,from_verification_key("aaaa")) {
         True
     } else {
         error

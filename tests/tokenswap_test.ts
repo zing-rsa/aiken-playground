@@ -10,9 +10,9 @@ import {
     generatePrivateKey,
     fromText,
     Unit,
-getAddressDetails,
-Assets,
-TxHash
+    getAddressDetails,
+    Assets,
+    TxHash
 } from 'lucid'
 
 
@@ -48,22 +48,24 @@ async function lock(lucid: Lucid, userKey: PrivateKey, dtm: Datum, scriptAddr: A
     return txHash;
 }
 
-// spend utxo
-async function spend(lucid: Lucid, userKey: PrivateKey, utxo: UTxO, pricePaid: bigint, address: Address, asset: Assets)   {
+async function spend(lucid: Lucid, userKey: PrivateKey, tokenUtxo: UTxO, pricePaid: bigint, address: Address, asset: Assets)   {
     lucid.selectWalletFromPrivateKey(userKey);
 
     console.log('paying addres: ', address, 'amount: ', pricePaid * 1000000n )
 
+    const ownUtxos = await lucid.wallet.getUtxos();
+
+    if(ownUtxos.length != 1) throw new Error("Invalid utxo state at address");
+
     const tx = await lucid
         .newTx()
-        .collectFrom([utxo], Data.void())
+        .collectFrom([tokenUtxo, ownUtxos[0]], Data.void())
         .attachSpendingValidator(validator)
         .payToAddress(address, { lovelace: pricePaid * 1000000n })
-        .payToAddress(await lucid.wallet.address(), asset)
         .complete()
 
     const txSigned = await tx.sign().complete()
-    console.log('spend tx:', txSigned)
+    console.log('spend tx:')
     const txHash = await txSigned.submit() 
 
     return txHash;
@@ -129,8 +131,9 @@ async function run(testParams: TestParams) {
     if (!addresshash1 || !addresshash2) throw new Error("Could not generate hashes for user accounts")
 
     const scriptAddress = lucidLib.utils.validatorToAddress(validator);
-    
-    const token: Unit = "4523c5e21d409b81c95b45b0aea275b8ea1406e6cafea5583b9f8a5f" + fromText("myToken")
+
+    // yes this is the space bud policy
+    const token: Unit = "4523c5e21d409b81c95b45b0aea275b8ea1406e6cafea5583b9f8a5f" + fromText("myToken") 
     const asset: Assets = { [token]: 1n }
 
     const emulator = new Emulator([
@@ -179,14 +182,27 @@ async function run(testParams: TestParams) {
 }
 
 function main() {
-   Deno.test('lock token, claim token, pay seller', 
+
+    Deno.test('Spend token, pay seller', 
              () => testSuceeds(run, {
                  pricePaid: 10n,
                  price: 10n,
                  spendType: SpendType.Spend
              }));
-//   Deno.test('', () => testSuceeds(run));
-//   Deno.test('', () => testFails(run));
+
+    Deno.test('Spend token, underpay seller', 
+             () => testFails(run, {
+                 pricePaid: 5n,
+                 price: 10n,
+                 spendType: SpendType.Spend
+             }));
+
+    Deno.test('ReClaim Token', 
+             () => testSuceeds(run, {
+                 pricePaid: 10n,
+                 price: 10n,
+                 spendType: SpendType.Claim
+             }));
 }
 
 main();
