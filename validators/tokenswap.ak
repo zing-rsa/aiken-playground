@@ -26,7 +26,7 @@ validator() {
         isSeller(ctx.transaction.extra_signatories, dtm.seller) || (
             paysSeller(ctx.transaction.outputs, dtm) && 
             spendsOne(ctx.transaction.inputs)
-        )
+       ) 
     }
 }
 
